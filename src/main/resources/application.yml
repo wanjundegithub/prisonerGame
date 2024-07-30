@@ -1,2 +1,20 @@
+# server config
 server:
   port: 8080
+# spring config
+spring:
+  datasource:
+    #    数据库连接
+    name: prisoner
+    url: jdbc:mysql://110.41.0.161:3307/prisoner
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+# MyBatis Configure
+mybatis:
+  mapperLocations: classpath:mapper/*.xml
+
+logging:
+  level:
+    mapper: debug
