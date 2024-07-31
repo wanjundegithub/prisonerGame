@@ -7,13 +7,13 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/prisoner/game")
+@RequestMapping("/prisoner/game/permission")
 public class PermissionController {
 
     @Autowired
     private PermissionService permissionService;
 
-    @GetMapping("/role/permission")
+    @GetMapping("/role")
     public Permission getUserPermission(@RequestParam String  schoolNumber){
         if(StringUtils.isEmpty(schoolNumber)){
             throw new RuntimeException("schoolNumber is empty");
