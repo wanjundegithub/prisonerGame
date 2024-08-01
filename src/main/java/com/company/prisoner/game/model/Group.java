@@ -13,8 +13,8 @@ public class Group {
     private Integer id;
     private Integer groupSequence;
     private Integer gameId;
-    private String userIdFirst;
-    private String userIdSecond;
+    private Integer userIdFirst;
+    private Integer userIdSecond;
     private String createBy;
     private Date createDate;
     private String lastUpdateBy;

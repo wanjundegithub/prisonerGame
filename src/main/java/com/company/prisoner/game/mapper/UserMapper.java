@@ -4,11 +4,19 @@ import com.company.prisoner.game.model.User;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * @author user
  */
 @Repository
 public interface UserMapper {
+
+    /**
+     * 获取所有用户数据
+     * @return
+     */
+    List<User> getAllUsers();
 
     /**
      * 根据用户名和密码查询用户

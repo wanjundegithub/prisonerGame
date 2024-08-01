@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.company.prisoner.game.mapper.GroupMapper">
+
+    <resultMap id="groupMap" type="com.company.prisoner.game.model.Group">
+        <id property="id" column="id"/>
+        <result property="groupSequence" column="group_sequence"/>
+        <result property="gameId" column="game_id"/>
+        <result property="userIdFirst" column="user_id_first"/>
+        <result property="userIdSecond" column="user_id_second"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createDate" column="create_date"/>
+        <result property="lastUpdateBy" column="last_update_by"/>
+        <result property="lastUpdateDate" column="last_update_date"/>
+        <result property="deleteFlag" column="delete_flag"/>
+    </resultMap>
+
+    <insert id="insertGroup" parameterType="com.company.prisoner.game.model.Group">
+        INSERT INTO `group` (group_sequence, game_id, user_id_first, user_id_second, create_by, create_date, last_update_by, last_update_date, delete_flag)
+        VALUES (#{groupSequence}, #{gameId}, #{userIdFirst}, #{userIdSecond}, #{createBy}, now(), #{lastUpdateBy}, now(), 0)
+    </insert>
+
+    <insert id="insertGroupList" parameterType="java.util.List">
+        INSERT INTO `group` (group_sequence, game_id, user_id_first, user_id_second, create_by, create_date, last_update_by, last_update_date, delete_flag)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.groupSequence}, #{item.gameId}, #{item.userIdFirst}, #{item.userIdSecond}, #{item.createBy}, now(), #{item.lastUpdateBy}, now(), 0)
+        </foreach>
+    </insert>
+
+    <select id="selectByGameId" resultMap="groupMap" parameterType="int" resultType="com.company.prisoner.game.model.Group">
+        SELECT * FROM `group`
+        WHERE game_id = #{gameId}
+    </select>
+
+</mapper>

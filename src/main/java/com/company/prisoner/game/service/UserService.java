@@ -8,6 +8,14 @@ import com.company.prisoner.game.utils.UserUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @author user
@@ -42,7 +50,33 @@ public class UserService {
         return userMapper.selectUser(userName, password);
     }
 
+    public List<User> selectAllUsers(){
+        return userMapper.getAllUsers();
+    }
+
     public synchronized void updateUser(User user){
         userMapper.updateUser(user);
+    }
+
+    /**
+     * 优先从缓存中获取数据，如果无法获取数据，则从数据库中再次查询获取
+     * @return
+     */
+    public Map<Integer, User> reGetAllUsers(){
+        Map<Integer, User> userMap = UserUtil.getUserMap();
+        if(!CollectionUtils.isEmpty(userMap)){
+            return userMap;
+        }
+        log.error("用户组缓存基础数据为空,将重新从数据库中查询获取");
+        List<User> userList = selectAllUsers();
+        if(CollectionUtils.isEmpty(userList)){
+            log.error("用户基础数据为空");
+            return new ConcurrentHashMap<>();
+        }
+        userMap = userList.stream()
+                .collect(Collectors.toMap(User::getId, Function.identity()));
+        UserUtil.setUserMap(userMap);
+        log.info("重新缓存并获取的用户数据总数:{}", userMap.size());
+        return userMap;
     }
 }

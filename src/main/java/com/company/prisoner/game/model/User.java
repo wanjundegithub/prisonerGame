@@ -1,5 +1,6 @@
 package com.company.prisoner.game.model;
 
+import lombok.Builder;
 import lombok.Data;
 
 import java.util.Date;
@@ -18,4 +19,22 @@ public class User {
     private String lastUpdateBy;
     private Date lastUpdateDate;
     private short deleteFlag;
+
+    public static void build(User sourceUser, User targetUser) {
+        if(targetUser==null){
+            throw new RuntimeException("目标用户属性不为空");
+        }
+        if(targetUser.getId()!=null){
+            throw new RuntimeException("目标用户属性id不为空");
+        }
+        targetUser.setId(sourceUser.getId());
+        targetUser.setNickName(sourceUser.getNickName());
+        targetUser.setUserName(sourceUser.getUserName());
+        targetUser.setPassword(sourceUser.getPassword());
+        targetUser.setCreateBy(sourceUser.getCreateBy());
+        targetUser.setCreateDate(sourceUser.getCreateDate());
+        targetUser.setLastUpdateBy(sourceUser.getLastUpdateBy());
+        targetUser.setLastUpdateDate(sourceUser.getLastUpdateDate());
+        targetUser.setDeleteFlag(sourceUser.getDeleteFlag());
+    }
 }

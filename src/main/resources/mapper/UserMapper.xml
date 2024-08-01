@@ -16,6 +16,12 @@
         <result property="deleteFlag" column="delete_flag" />
     </resultMap>
 
+    <select id="getAllUsers" resultMap="UserResultMap">
+        SELECT
+            *
+        FROM
+            user
+    </select>
     <select id="selectUser" resultMap="UserResultMap">
         SELECT * FROM `user`
         WHERE user_name = #{userName} AND password = #{password}
