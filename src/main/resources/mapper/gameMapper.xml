@@ -16,7 +16,13 @@
     </resultMap>
 
     <select id="getGame" resultMap="GameResultMap">
-        SELECT * FROM game t where t.alive_flag = #{aliveFlag}
+        SELECT * FROM game t where  1=1
+        <if test="gameId!=null">
+            and t.game_id = #{gameId}
+        </if>
+        <if test="aliveFlag!=null">
+            and t.alive_flag = #{aliveFlag}
+        </if>
     </select>
 
     <insert id="insertGame" useGeneratedKeys="true" keyProperty="gameId">

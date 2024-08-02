@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.company.prisoner.game.mapper.OptionMapper">
+
+    <resultMap id="OptionResultMap" type="com.company.prisoner.game.model.Option">
+        <id property="id" column="id"/>
+        <result property="gameId" column="game_id"/>
+        <result property="groupId" column="group_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="selectOption" column="select_option"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createDate" column="create_date"/>
+        <result property="lastUpdateBy" column="last_update_by"/>
+        <result property="lastUpdateDate" column="last_update_date"/>
+        <result property="deleteFlag" column="delete_flag"/>
+    </resultMap>
+
+    <select id="getOptionList"  resultMap="OptionResultMap">
+        SELECT * FROM prisoner.option WHERE 1=1
+        <if test="gameId!=null">
+            and game_id = #{gameId}
+        </if>
+    </select>
+
+    <insert id="insertOption" parameterType="com.company.prisoner.game.model.Option">
+        INSERT INTO prisoner.option (game_id, group_id, user_id, select_option, create_by, create_date, last_update_by, last_update_date, delete_flag)
+        VALUES (#{gameId}, #{groupId}, #{userId}, #{selectOption}, #{createBy}, now(), #{lastUpdateBy}, now(), 0)
+    </insert>
+
+    <insert id="batchInsertOption">
+        INSERT INTO prisoner.option (game_id, group_id, user_id, select_option, create_by, create_date, last_update_by, last_update_date, delete_flag)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.gameId}, #{item.groupId}, #{item.userId}, #{item.selectOption}, #{item.createBy}, now(), #{item.lastUpdateBy}, now(), 0)
+        </foreach>
+    </insert>
+
+</mapper>

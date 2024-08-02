@@ -7,6 +7,8 @@ public class GroupParam {
 
     private Integer gameId;
 
+    private Integer id;
+
     /**
      * 每页大小
      */

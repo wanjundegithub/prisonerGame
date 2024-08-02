@@ -13,6 +13,7 @@ public class UserGroupVO {
     private String nickName;
     private String userName;
     private Integer groupSequence;
+    private Integer groupId;
     private Integer gameId;
     private String createBy;
     private Date createDate;
@@ -26,6 +27,7 @@ public class UserGroupVO {
         userGroupVO.setNickName(user.getNickName());
         userGroupVO.setUserName(user.getUserName());
 
+        userGroupVO.setGroupId(group.getId());
         userGroupVO.setGroupSequence(group.getGroupSequence());
         userGroupVO.setGameId(group.getGameId());
         userGroupVO.setCreateBy(group.getCreateBy());

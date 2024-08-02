@@ -6,6 +6,7 @@ import com.company.prisoner.game.mapper.GroupMapper;
 import com.company.prisoner.game.model.Group;
 import com.company.prisoner.game.model.Result;
 import com.company.prisoner.game.model.User;
+import com.company.prisoner.game.param.GroupParam;
 import com.company.prisoner.game.utils.UserUtil;
 import com.company.prisoner.game.vo.UserGroupVO;
 import lombok.extern.slf4j.Slf4j;
@@ -106,10 +107,11 @@ public class GroupService {
 
     /**
      * 查询某一局游戏下的所有分组(包含对应用户的信息)
-     * @param gameId
+     * @param param
      * @return
      */
-    public Result selectGroupList(Integer gameId){
+    public Result<List<UserGroupVO>> selectUserGroupList(GroupParam param){
+        Integer gameId = param.getGameId();
         //从全局缓存中获取到所有用户信息组
         Map<Integer, User> userMap = userService.reGetAllUsers();
         if(CollectionUtils.isEmpty(userMap)){
@@ -117,7 +119,7 @@ public class GroupService {
             return Result.buildResult(ResultEnum.FAILED.getCode(), "用户组基础数据为空，无法查询分组数据");
         }
         //查询游戏下对应的分组数据
-        List<Group> groupList = groupMapper.selectByGameId(gameId);
+        List<Group> groupList = groupMapper.selectGroupList(param);
         if(CollectionUtils.isEmpty(groupList)){
             log.error("当前游戏下分组数据为空, gameId:{}", gameId);
             return Result.buildResult(ResultEnum.FAILED.getCode(), "当前游戏下分组数据为空");
@@ -150,6 +152,15 @@ public class GroupService {
             resultUserGroup.add(itemSecond);
         }
         return resultUserGroup;
+    }
+
+    /**
+     * 获取当前游戏下的所有分组
+     * @param
+     * @return
+     */
+    public List<Group> getAllGroup(GroupParam param){
+        return groupMapper.selectGroupList(param);
     }
 
 }

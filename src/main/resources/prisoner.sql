@@ -150,3 +150,36 @@ create table `prisoner`.`group`
     `delete_flag` smallint(1) not null comment '0代表未删除 1代表删除',
     index `index_01`(`group_sequence`,`game_id`, `user_id_first`, `user_id_second`)
 )engine = InnoDB, charset = utf8mb4;
+
+
+create table `prisoner`.`option`
+(
+    `id` int(11) not null primary key auto_increment comment '分组id',
+    `game_id` int(11) not null comment '游戏id',
+    `group_id` int(11) not null comment '分组id',
+    `user_id` int(11) not null comment '用户id',
+    `select_option` int(11) not null comment '用户的选择 0代表未选择 1代表选择合作 2代表选择背叛',
+    `create_by` varchar(20) not null comment '创建人',
+    `create_date` timestamp not null comment '创建时间',
+    `last_update_by` varchar(20) not null comment '更新人',
+    `last_update_date` timestamp not null comment '更新时间',
+    `delete_flag` smallint(1) not null comment '0代表未删除 1代表删除',
+    index `index_01`(`game_id`, `group_id`, `user_id`)
+)engine = InnoDB, charset = utf8mb4, comment='用户提交的选项表';
+
+
+create table `prisoner`.`score`
+(
+    `id` int(11) not null primary key auto_increment comment '分组id',
+    `game_id` int(11) not null comment '游戏id',
+    `group_id` int(11) not null comment '分组id',
+    `user_id` int(11) not null comment '用户id',
+    `option_value` varchar(20) not null comment '用户的选择 未选择 选择合作 选择背叛',
+    `score` int(11) not null comment '所得分数',
+    `create_by` varchar(20) not null comment '创建人',
+    `create_date` timestamp not null comment '创建时间',
+    `last_update_by` varchar(20) not null comment '更新人',
+    `last_update_date` timestamp not null comment '更新时间',
+    `delete_flag` smallint(1) not null comment '0代表未删除 1代表删除',
+    index `index_01`(`game_id`, `group_id`, `user_id`)
+)engine = InnoDB, charset = utf8mb4, comment='当前游戏下的所有分数';
