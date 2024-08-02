@@ -10,6 +10,7 @@ import com.company.prisoner.game.model.Result;
 import com.company.prisoner.game.model.User;
 import com.company.prisoner.game.param.GroupParam;
 import com.company.prisoner.game.param.OptionParam;
+import com.company.prisoner.game.utils.UserUtil;
 import com.company.prisoner.game.vo.UserGroupVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -59,8 +60,8 @@ public class OptionService {
         Integer gameId = optionParam.getGameId();
         boolean gameFlag = gameService.checkStartGame(gameId);
         if(!gameFlag){
-            log.error("不存在或存在多个启动的游戏,无法提交选择, optionParam:{}", JSON.toJSONString(optionParam));
-            return Result.buildResult(ResultEnum.FAILED.getCode(), "不存在或存在多个启动的游戏,无法提交选择");
+            log.error("不存在或存在多个启动状态的游戏,无法提交选择, optionParam:{}", JSON.toJSONString(optionParam));
+            return Result.buildResult(ResultEnum.FAILED.getCode(), "不存在或存在多个启动状态的游戏,无法提交选择");
         }
         //查询当前game下的分组是否存在
         Integer groupId = optionParam.getGroupId();
@@ -97,6 +98,7 @@ public class OptionService {
             log.error("当前用户提交失败, optionParam:{}", JSON.toJSONString(optionParam));
             return Result.buildResult(ResultEnum.FAILED.getCode(), "当前用户提交失败");
         }
+        UserUtil.submit(gameId, user);
         return Result.buildResult(ResultEnum.SUCCESSFUL.getCode(), "");
     }
 

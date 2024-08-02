@@ -15,7 +15,7 @@
         <result column="delete_flag" property="deleteFlag" />
     </resultMap>
 
-    <select id="getGame" resultMap="GameResultMap">
+    <select id="getGameList" resultMap="GameResultMap">
         SELECT * FROM game t where  1=1
         <if test="gameId!=null">
             and t.game_id = #{gameId}

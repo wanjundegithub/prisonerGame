@@ -12,6 +12,7 @@ import com.company.prisoner.game.vo.UserGroupVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
@@ -38,10 +39,11 @@ public class GroupService {
      * @param gameId
      * @return
      */
+    @Transactional(rollbackFor = Exception.class)
     public synchronized Result startGroup(Integer gameId){
         Map<Integer, User> userOnLineMap = UserUtil.getUserOnLineMap();
         if(userOnLineMap.size()<MIN_USER_COUNT){
-            return Result.buildResult(ResultEnum.FAILED.getCode(), "人数少于2人无法进行分组");
+            throw new RuntimeException("在线人数少于2人无法进行分组");
         }
         List<User> userList = new ArrayList<>(userOnLineMap.values());
         User unGroupUser = new User();

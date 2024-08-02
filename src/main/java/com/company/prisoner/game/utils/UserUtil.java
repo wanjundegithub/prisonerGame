@@ -9,6 +9,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * @author user
+ */
 @Slf4j
 public class UserUtil {
 
@@ -21,6 +24,11 @@ public class UserUtil {
      * 表示当前在线人数
      */
     private static AtomicInteger onlineCount = new AtomicInteger();
+
+    /**
+     * 表示各个游戏的提交人数 键为游戏id,值为游戏
+     */
+    private static Map<Integer, Integer> submitCountMap = new ConcurrentHashMap<>();
 
     /**
      * 内存中维护用户id-user的键值对(在容器启动时进行缓存所有数据) 在修改/新增/删除的时候需要同步修改这个数据
@@ -51,6 +59,14 @@ public class UserUtil {
         userMap = new ConcurrentHashMap<>(sourceUserMap);
     }
 
+    public static Map<Integer, Integer> getSubmitCountMap() {
+        return submitCountMap;
+    }
+
+    public static void setSubmitCountMap(Map<Integer, Integer> sourceSubmitCountMap) {
+        submitCountMap = sourceSubmitCountMap;
+    }
+
     public static Result login(User user){
         if(userOnLineMap.containsKey(user.getId())){
             log.error("已经处于登陆状态无法再次登陆");
@@ -71,6 +87,19 @@ public class UserUtil {
         onlineCount.decrementAndGet();
         log.info("当前退出登录用户学号:{}, 当前在线人数:{}", user.getUserName(),onlineCount.get());
         return Result.buildResult(ResultEnum.SUCCESSFUL.getCode());
+    }
+
+    /**
+     * 表示当前提交了一个选择
+     * @param gameId
+     */
+    public static void submit(Integer gameId, User user){
+        if(submitCountMap.containsKey(gameId)){
+            submitCountMap.put(gameId, submitCountMap.get(gameId) + 1);
+        }else{
+            submitCountMap.put(gameId, 1);
+        }
+        log.info("当前用户user:{}做出了选择, 当前游戏提交人数为:{}",user.getUserName(), submitCountMap.get(gameId));
     }
 
 }

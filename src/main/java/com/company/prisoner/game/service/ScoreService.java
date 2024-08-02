@@ -1,7 +1,6 @@
 package com.company.prisoner.game.service;
 
 import com.alibaba.fastjson.JSON;
-import com.company.prisoner.game.constant.GameConstants;
 import com.company.prisoner.game.enums.OptionEnum;
 import com.company.prisoner.game.enums.ResultEnum;
 import com.company.prisoner.game.mapper.ScoreMapper;
@@ -15,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.util.*;
@@ -68,6 +68,7 @@ public class ScoreService {
      * 获取当前游戏下用户的选择并计算每个用户的分数，最终将他们写入表中
      * @param scoreParam
      */
+    @Transactional(rollbackFor = Exception.class)
     public Result saveAllScores(ScoreParam scoreParam){
         Integer gameId = scoreParam.getGameId();
 
@@ -77,7 +78,8 @@ public class ScoreService {
         List<Option> optionList = optionService.getAllOptions(optionParam);
         if(CollectionUtils.isEmpty(optionList)){
             log.error("当前没有任何用户提交选择,无法计算分数, scoreParam:{}", JSON.toJSONString(scoreParam));
-            return Result.buildResult(ResultEnum.FAILED.getCode(), "当前没有任何用户提交选择,无法计算分数");
+            throw new RuntimeException("当前没有任何用户提交选择,无法计算分数");
+            //return Result.buildResult(ResultEnum.FAILED.getCode(), "当前没有任何用户提交选择,无法计算分数");
         }
 
         //2.获取当前游戏下的所有分组
@@ -86,15 +88,16 @@ public class ScoreService {
         List<Group> groupList = groupService.getAllGroup(groupParam);
         if(CollectionUtils.isEmpty(groupList)){
             log.error("无有效的分组信息, scoreParam:{}",  JSON.toJSONString(scoreParam));
-            return Result.buildResult(ResultEnum.FAILED.getCode(),  "无有效的分组信息");
+            throw new RuntimeException("无有效的分组信息");
+            //return Result.buildResult(ResultEnum.FAILED.getCode(),  "无有效的分组信息");
         }
         Map<Integer, User> userMap = userService.reGetAllUsers();
         if(CollectionUtils.isEmpty(userMap)){
             log.error("用户组基础数据为空，无法查询分组数据, gameId:{}", gameId);
-            return Result.buildResult(ResultEnum.FAILED.getCode(), "用户组基础数据为空，无法查询分组数据");
+            throw new RuntimeException("用户组基础数据为空，无法查询分组数据");
+            //return Result.buildResult(ResultEnum.FAILED.getCode(), "用户组基础数据为空，无法查询分组数据");
         }
         List<UserGroupVO> userGroupVOList = groupService.splitGroupList(userMap, groupList);
-
         //3.获取分组下的所有的分数
         List<Score> scoreList = getUserScoreList(optionList, userGroupVOList, groupList);
         scoreMapper.batchInsertScore(scoreList);
@@ -145,9 +148,9 @@ public class ScoreService {
                 remainChooseList.add(score);
                 continue;
             }
-            if(!optionMap.containsKey(userIdSecond)&&optionMap.containsKey(userIdFirst)){
+            if(optionMap.containsKey(userIdFirst)&&!optionMap.containsKey(userIdSecond)){
                 //未作选择的用户同一组的做了选择用户的分数
-                int scoreValue = computeScore(optionMap.get(userIdSecond));
+                int scoreValue = computeScore(optionMap.get(userIdFirst));
                 Score score = Score.build(scoreValue, allUserGroupMap.get(userIdFirst),
                         optionMap.get(userIdFirst));
                 remainChooseList.add(score);

@@ -13,6 +13,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+/**
+ * @author user
+ */
 @RestController
 @RequestMapping("/prisoner/game/score")
 @Slf4j
