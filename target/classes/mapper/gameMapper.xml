@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.company.prisoner.game.mapper.GameMapper">
+
+    <resultMap id="GameResultMap" type="com.company.prisoner.game.model.Game">
+        <id column="game_id" property="gameId" />
+        <result column="alive_flag" property="aliveFlag" />
+        <result column="create_by" property="createBy" />
+        <result column="create_date" property="createDate" />
+        <result column="last_update_by" property="lastUpdateBy" />
+        <result column="last_update_date" property="lastUpdateDate" />
+        <result column="delete_flag" property="deleteFlag" />
+    </resultMap>
+
+    <select id="getGameList" resultMap="GameResultMap">
+        SELECT * FROM game t where  1=1
+        <if test="gameId!=null">
+            and t.game_id = #{gameId}
+        </if>
+        <if test="aliveFlag!=null">
+            and t.alive_flag = #{aliveFlag}
+        </if>
+    </select>
+
+    <insert id="insertGame" useGeneratedKeys="true" keyProperty="gameId">
+        INSERT INTO game (alive_flag, create_by, create_date, last_update_by, last_update_date, delete_flag)
+        VALUES (#{aliveFlag}, #{createBy},now(), #{lastUpdateBy}, now(), 0)
+    </insert>
+
+    <update id="updateGame">
+        UPDATE game
+        SET alive_flag = #{aliveFlag},
+
+            <if test="lastUpdateBy!= null and lastUpdateBy != ''">
+                last_update_by = #{lastUpdateBy},
+            </if>
+
+            <if test="deleteFlag!= null and deleteFlag != ''">
+                delete_flag = #{deleteFlag}
+            </if>
+
+            last_update_date = now()
+        WHERE game_id = #{gameId}
+    </update>
+
+</mapper>

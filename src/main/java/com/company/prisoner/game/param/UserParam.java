@@ -2,6 +2,8 @@ package com.company.prisoner.game.param;
 
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * @author user
  */
@@ -17,4 +19,6 @@ public class UserParam {
     private String nickName;
 
     private String role;
+
+    private List<String> userNameList;
 }

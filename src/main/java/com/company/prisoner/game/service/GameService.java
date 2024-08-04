@@ -7,8 +7,10 @@ import com.company.prisoner.game.enums.ResultEnum;
 import com.company.prisoner.game.mapper.GameMapper;
 import com.company.prisoner.game.model.Game;
 import com.company.prisoner.game.model.Result;
+import com.company.prisoner.game.model.User;
 import com.company.prisoner.game.param.GameParam;
 import com.company.prisoner.game.param.ScoreParam;
+import com.company.prisoner.game.param.UserParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,6 +19,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -34,6 +37,9 @@ public class GameService {
 
     @Autowired
     private GroupService groupService;
+
+    @Autowired
+    private UserService userService;
 
     /**
      * 创建游戏后马上进行分组
@@ -150,13 +156,13 @@ public class GameService {
      */
     public Result<Game> getStartGame(){
         GameParam param = new GameParam();
-        param.setGameId(GameActiveEnum.START.getStatus());
+        param.setAliveFlag(GameActiveEnum.START.getStatus());
         List<Game> gameList = gameMapper.getGameList(param);
         if(CollectionUtils.isEmpty(gameList)){
-            return Result.buildResult(ResultEnum.FAILED.getCode(),"不存在已经启动的游戏");
+            return Result.buildResult(ResultEnum.FAILED.getCode(),"游戏尚未启动");
         }
         if(gameList.size()>1){
-            return Result.buildResult(ResultEnum.FAILED.getCode(),"启动的游戏存在多个");
+            return Result.buildResult(ResultEnum.FAILED.getCode(),"当前启动的游戏存在多个");
         }
         return Result.buildResult(ResultEnum.SUCCESSFUL.getCode(),"", gameList.get(0));
     }

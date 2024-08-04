@@ -1,6 +1,7 @@
 package com.company.prisoner.game.service;
 
 import com.alibaba.fastjson.JSON;
+import com.company.prisoner.game.constant.GameConstants;
 import com.company.prisoner.game.enums.GameActiveEnum;
 import com.company.prisoner.game.enums.OptionEnum;
 import com.company.prisoner.game.enums.ResultEnum;
@@ -44,6 +45,21 @@ public class OptionService {
      * @return
      */
     public Result submitOption(OptionParam optionParam){
+        //获取当前用户
+        Map<Integer, User> userMap = userService.reGetAllUsers();
+        if(CollectionUtils.isEmpty(userMap)){
+            log.error("用户组基础数据为空");
+            return Result.buildResult(ResultEnum.FAILED.getCode(), "用户组基础数据为空");
+        }
+        User user = userMap.get(optionParam.getUserId());
+        if(user==null){
+            log.error("当前用户不存在");
+            return Result.buildResult(ResultEnum.FAILED.getCode(), "当前用户不存在");
+        }
+        if(GameConstants.ADMIN.equals(user.getRole())){
+            log.error("管理员禁止参与游戏,仅有玩家可以参与");
+            return Result.buildResult(ResultEnum.FAILED.getCode(), "管理员禁止参与游戏,仅有玩家可以参与");
+        }
         //从game列表中搜索有没有处于唯一启动状态的游戏
         Result<Game> gameResult = gameService.getStartGame();
         if(ResultEnum.FAILED.getCode().equals(gameResult.getCode())){
@@ -63,16 +79,6 @@ public class OptionService {
             return Result.buildResult(ResultEnum.FAILED.getCode(), "用户已经提交了选择,无法再次提交");
         }
         Integer userId = optionParam.getUserId();
-        Map<Integer, User> userMap = userService.reGetAllUsers();
-        if(CollectionUtils.isEmpty(userMap)){
-            log.error("用户组基础数据为空,请检查用户组配置, optionParam:{}", JSON.toJSONString(optionParam));
-            return Result.buildResult(ResultEnum.FAILED.getCode(), "用户组基础数据为空,请检查用户组配置");
-        }
-        User user = userMap.get(userId);
-        if(user==null){
-            log.error("当前用户不存在,无法提交选择, optionParam:{}", JSON.toJSONString(optionParam));
-            return Result.buildResult(ResultEnum.FAILED.getCode(), "当前用户不存在,无法提交选择");
-        }
         //查询当前gameId,userId下的对应的group
         GroupParam groupParam = new GroupParam();
         groupParam.setGameId(gameId);

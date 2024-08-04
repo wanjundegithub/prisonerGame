@@ -5,6 +5,7 @@ import com.company.prisoner.game.model.Result;
 import com.company.prisoner.game.model.User;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -100,6 +101,62 @@ public class UserUtil {
             submitCountMap.put(gameId, 1);
         }
         log.info("当前用户user:{}做出了选择, 当前游戏提交人数为:{}",user.getUserName(), submitCountMap.get(gameId));
+    }
+
+    public static void update(Integer userId, User user){
+        log.info("当前用户user:{}更新个人信息和在线用户缓存",user.getId());
+        if(!userMap.containsKey(userId)){
+            log.info("当前用户user:{}不存在,无法更新基础用户缓存",user.getId());
+            return;
+        }
+        //更新基础用户缓存和在线用户缓存
+        userMap.put(userId, user);
+        if(!userOnLineMap.containsKey(userId)){
+            log.info("当前用户user:{}不存在在线用户缓存中,无法更新缓存",user.getId());
+            return;
+        }
+        userOnLineMap.put(userId, user);
+    }
+
+    /**
+     * 将用户从缓存中删除
+     * @param userId
+     */
+    public static void delete(Integer userId){
+        log.info("当前用户user:{}被删除个人信息和在线用户缓存",userId);
+        if(!userMap.containsKey(userId)){
+            log.info("当前用户user:{}不存在,无法删除用户",userId);
+            return;
+        }
+        userMap.remove(userId);
+        if(!userOnLineMap.containsKey(userId)){
+            log.info("当前用户user:{}不存在在线用户缓存中,无法删除用户",userId);
+            return;
+        }
+        userOnLineMap.remove(userId);
+    }
+
+    public static boolean save(Integer userId, User user){
+        log.info("当前用户user:{}增加个人信息缓存",userId);
+        if(userMap.containsKey(userId)){
+            log.info("当前用户user:{}已经存在,无法新增用户",userId);
+            return false;
+        }
+        userMap.put(userId, user);
+        return true;
+    }
+
+    public static boolean saveList(List<User> userList){
+        log.info("批量用户增加");
+        for(User user: userList){
+            Integer userId = user.getId();
+            if(userMap.containsKey(userId)){
+                log.info("当前用户user:{}已经存在,无法新增用户",userId);
+                return false;
+            }
+            userMap.put(userId, user);
+        }
+        return true;
     }
 
 }

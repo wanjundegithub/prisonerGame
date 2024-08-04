@@ -39,4 +39,26 @@ public interface UserMapper {
      * @return
      */
     int updateUser(User user);
+
+    /**
+     * 保存用户
+     * @param user
+     * @return
+     */
+    int insertUser(User user);
+
+    /**
+     * 删除用户
+     * @param user
+     * @return
+     */
+    int deleteUserById(User user);
+
+    /**
+     * 保存用户列表
+     * @param users
+     * @return
+     */
+    int insertUsers(@Param("users")List<User> users);
+
 }

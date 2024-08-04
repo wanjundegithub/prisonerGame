@@ -18,7 +18,6 @@ public class GameController {
 
     @PostMapping("/createGame")
     public Result<Game> createGame(){
-        log.info("创建游戏");
         return gameService.createGame();
     }
 
