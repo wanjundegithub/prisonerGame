@@ -40,6 +40,9 @@
         <if test = "gameId!=null">
             and game_id = #{gameId}
         </if>
+        <if test="userId!=null">
+            and (user_id_first = #{userId} or user_id_second = #{userId})
+        </if>
     </select>
 
 </mapper>

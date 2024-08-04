@@ -1,13 +1,12 @@
 package com.company.prisoner.game.service;
 
 import com.alibaba.fastjson.JSON;
+import com.company.prisoner.game.enums.GameActiveEnum;
 import com.company.prisoner.game.enums.OptionEnum;
 import com.company.prisoner.game.enums.ResultEnum;
 import com.company.prisoner.game.mapper.OptionMapper;
-import com.company.prisoner.game.model.Group;
-import com.company.prisoner.game.model.Option;
-import com.company.prisoner.game.model.Result;
-import com.company.prisoner.game.model.User;
+import com.company.prisoner.game.model.*;
+import com.company.prisoner.game.param.GameParam;
 import com.company.prisoner.game.param.GroupParam;
 import com.company.prisoner.game.param.OptionParam;
 import com.company.prisoner.game.utils.UserUtil;
@@ -44,47 +43,52 @@ public class OptionService {
      * 用户提交自己的选择
      * @return
      */
-    public synchronized Result submitOption(OptionParam optionParam){
+    public Result submitOption(OptionParam optionParam){
+        //从game列表中搜索有没有处于唯一启动状态的游戏
+        Result<Game> gameResult = gameService.getStartGame();
+        if(ResultEnum.FAILED.getCode().equals(gameResult.getCode())){
+            log.error("{}, optionParam:{}", gameResult.getMessage(), JSON.toJSONString(optionParam));
+            return Result.buildResult(ResultEnum.FAILED.getCode(), gameResult.getMessage());
+        }
+        Game game = gameResult.getData();
+        Integer gameId = game.getGameId();
+        optionParam.setGameId(gameId);
+        //查询当前游戏当前用户是否已经提交了选择
+        OptionParam queryParam = new OptionParam();
+        queryParam.setGameId(gameId);
+        queryParam.setUserId(optionParam.getUserId());
+        List<Option> optionList = optionMapper.getOptionList(queryParam);
+        if(!CollectionUtils.isEmpty(optionList)){
+            log.error("用户已经提交了选择,无法再次提交, optionParam:{}", JSON.toJSONString(optionParam));
+            return Result.buildResult(ResultEnum.FAILED.getCode(), "用户已经提交了选择,无法再次提交");
+        }
         Integer userId = optionParam.getUserId();
         Map<Integer, User> userMap = userService.reGetAllUsers();
         if(CollectionUtils.isEmpty(userMap)){
-            log.error("用户组基础数据为空, optionParam:{}", JSON.toJSONString(optionParam));
-            return Result.buildResult(ResultEnum.FAILED.getCode(), "用户组基础数据为空");
+            log.error("用户组基础数据为空,请检查用户组配置, optionParam:{}", JSON.toJSONString(optionParam));
+            return Result.buildResult(ResultEnum.FAILED.getCode(), "用户组基础数据为空,请检查用户组配置");
         }
         User user = userMap.get(userId);
         if(user==null){
             log.error("当前用户不存在,无法提交选择, optionParam:{}", JSON.toJSONString(optionParam));
             return Result.buildResult(ResultEnum.FAILED.getCode(), "当前用户不存在,无法提交选择");
         }
-        //查询game是否处于启动状态 只有处于启动状态下的才能做出选择
-        Integer gameId = optionParam.getGameId();
-        boolean gameFlag = gameService.checkStartGame(gameId);
-        if(!gameFlag){
-            log.error("不存在或存在多个启动状态的游戏,无法提交选择, optionParam:{}", JSON.toJSONString(optionParam));
-            return Result.buildResult(ResultEnum.FAILED.getCode(), "不存在或存在多个启动状态的游戏,无法提交选择");
-        }
-        //查询当前game下的分组是否存在
-        Integer groupId = optionParam.getGroupId();
+        //查询当前gameId,userId下的对应的group
         GroupParam groupParam = new GroupParam();
         groupParam.setGameId(gameId);
-        groupParam.setId(groupId);
+        groupParam.setUserId(userId);
         List<Group> curGameGroupList = groupService.getAllGroup(groupParam);
         if(CollectionUtils.isEmpty(curGameGroupList)||curGameGroupList.size()>1){
-            log.error("当前游戏下不存在分组或存在多个相同分组,无法提交选择, " +
+            log.error("当前游戏下对应用户不存在分组或存在多个相同分组,无法提交选择, " +
                     "optionParam:{}", JSON.toJSONString(optionParam));
             return Result.buildResult(ResultEnum.FAILED.getCode(), "" +
-                    "当前游戏下不存在分组或存在多个相同分组,无法提交选择");
+                    "当前游戏下对应用户不存在分组或存在多个相同分组,无法提交选择");
         }
-        Group curGroup = curGameGroupList.get(0);
-        //判断用户id是否在分组中
-        if(!curGroup.getUserIdFirst().equals(userId)&&!curGroup.getUserIdSecond().equals(userId)){
-            log.error("当前游戏下当前用户不在所属分组,无法提交选择, " +
-                    "optionParam:{}", JSON.toJSONString(optionParam));
-            return Result.buildResult(ResultEnum.FAILED.getCode(), "" +
-                    "当前游戏下当前用户不在所属分组,无法提交选择");
-        }
+        Integer groupId = curGameGroupList.get(0).getId();
         Option option = new Option();
-        BeanUtils.copyProperties(optionParam, option);
+        option.setGameId(gameId);
+        option.setGroupId(groupId);
+        option.setUserId(userId);
         int selectOption = OptionEnum.getCodeByDesc(optionParam.getSelectOptionValue());
         if(selectOption<0){
             log.error("当前用户提交了无效选择, optionParam:{}", JSON.toJSONString(optionParam));
@@ -93,12 +97,14 @@ public class OptionService {
         option.setSelectOption(selectOption);
         option.setCreateBy(user.getNickName());
         option.setLastUpdateBy(user.getNickName());
-        int rows = optionMapper.insertOption(option);
-        if(rows<=0){
-            log.error("当前用户提交失败, optionParam:{}", JSON.toJSONString(optionParam));
-            return Result.buildResult(ResultEnum.FAILED.getCode(), "当前用户提交失败");
+        synchronized(this) {
+            int rows = optionMapper.insertOption(option);
+            if(rows<=0){
+                log.error("当前用户提交失败, optionParam:{}", JSON.toJSONString(optionParam));
+                return Result.buildResult(ResultEnum.FAILED.getCode(), "当前用户提交失败");
+            }
+            UserUtil.submit(gameId, user);
         }
-        UserUtil.submit(gameId, user);
         return Result.buildResult(ResultEnum.SUCCESSFUL.getCode(), "");
     }
 

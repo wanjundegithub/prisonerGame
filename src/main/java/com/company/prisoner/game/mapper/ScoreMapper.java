@@ -6,8 +6,15 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+/**
+ * @author user
+ */
 @Repository
 public interface ScoreMapper {
+
+    List<Integer> getAllGameList(ScoreParam scoreParam);
+
+    Integer getScoreCount(ScoreParam scoreParam);
 
     List<Score> getScoreList(ScoreParam scoreParam);
 

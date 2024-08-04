@@ -1,6 +1,9 @@
 package com.company.prisoner.game.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.company.prisoner.game.model.PageResult;
+import com.company.prisoner.game.model.Result;
+import com.company.prisoner.game.model.Score;
 import com.company.prisoner.game.param.ScoreParam;
 import com.company.prisoner.game.service.ScoreService;
 import com.company.prisoner.game.vo.ScoreVO;
@@ -25,11 +28,26 @@ public class ScoreController {
     private ScoreService scoreService;
 
     @PostMapping("/getAllScores")
-    public List<ScoreVO> getAllScoreList(@RequestBody ScoreParam scoreParam){
+    public Result<List<ScoreVO>> getAllScoreList(@RequestBody ScoreParam scoreParam){
         if(scoreParam.getGameId()==null){
             log.error("游戏不存在, scoreParam:{}", JSON.toJSONString(scoreParam));
             throw new RuntimeException("游戏不存在");
         }
         return scoreService.getAllScores(scoreParam);
     }
+
+    @PostMapping("/getAllGameIdList")
+    public Result<List<Integer>> getAllGameIdList(){
+        return scoreService.getAllGameIdList();
+    }
+
+    @PostMapping("/getPageScoreList")
+    public Result<PageResult<Score>> getPageScoreList(@RequestBody ScoreParam scoreParam){
+        if(scoreParam.getGameId()==null || scoreParam.getPageSize()==null|| scoreParam.getPage()==null){
+            log.error("游戏不存在或者分页数据不存在, scoreParam:{}", JSON.toJSONString(scoreParam));
+            throw new RuntimeException("游戏不存在或者分页数据不存在");
+        }
+        return scoreService.getPageScoreList(scoreParam);
+    }
+
 }

@@ -62,7 +62,7 @@ INSERT INTO `prisoner`.`user` (`id`,`nick_name`,`user_name`,`password`,`role`,`c
 create table `prisoner`.`game`
 (
     `game_id` int(11) not null primary key auto_increment comment '游戏表id',
-    `alive_flag` int(11) not null comment '存活标识 0:代表初始状态 1代表启动状态 2代表停止状态',
+    `alive_flag` int(11) not null comment '存活标识 0:代表初始状态 1代表启动状态 2代表停止状态 3代表无效状态',
     `create_by` varchar(20) not null comment '创建人',
     `create_date` timestamp not null comment '创建时间',
     `last_update_by` varchar(20) not null comment '更新人',

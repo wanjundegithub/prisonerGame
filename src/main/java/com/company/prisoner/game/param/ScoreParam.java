@@ -10,4 +10,10 @@ public class ScoreParam {
 
     private Integer gameId;
 
+    private Integer pageSize;
+
+    private Integer page;
+
+    private Integer offset;
+
 }

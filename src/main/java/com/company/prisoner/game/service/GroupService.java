@@ -43,7 +43,9 @@ public class GroupService {
     public synchronized Result startGroup(Integer gameId){
         Map<Integer, User> userOnLineMap = UserUtil.getUserOnLineMap();
         if(userOnLineMap.size()<MIN_USER_COUNT){
-            throw new RuntimeException("在线人数少于2人无法进行分组");
+            log.error("在线人数少于2人无法进行分组,当前在线人数"+userOnLineMap.size());
+            return Result.buildResult(ResultEnum.FAILED.getCode(),
+                    "在线人数少于2人无法进行分组,当前在线人数"+userOnLineMap.size());
         }
         List<User> userList = new ArrayList<>(userOnLineMap.values());
         User unGroupUser = new User();
@@ -85,6 +87,8 @@ public class GroupService {
 
             if (remainingUsers.size() > 2) {
                 secondIndex = new Random().nextInt(remainingUsers.size() - 1) + 1;
+            }else {
+                secondIndex = 1;
             }
 
             User user1 = remainingUsers.get(firstIndex);

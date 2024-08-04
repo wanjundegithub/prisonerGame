@@ -9,6 +9,8 @@ public class GroupParam {
 
     private Integer id;
 
+    private Integer userId;
+
     /**
      * 每页大小
      */

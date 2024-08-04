@@ -19,12 +19,33 @@
         <result property="deleteFlag" column="delete_flag"/>
     </resultMap>
 
+    <select id="getAllGameList" resultType="java.lang.Integer">
+        select distinct game_id as gameId from prisoner.score WHERE 1=1
+        <if test="gameId!=null">
+            and game_id = #{gameId}
+        </if>
+        order by game_id desc
+    </select>
+
     <select id="getScoreList" resultMap="ScoreResultMap">
         SELECT * FROM prisoner.score WHERE 1=1
-           <if test="gameId!=null">
-               and game_id = #{gameId}
-           </if>
+        <if test="gameId!=null">
+            and game_id = #{gameId}
+        </if>
+        order by score desc
+        <if test="page!=null and pageSize!=null">
+            limit #{offset}, #{pageSize}
+        </if>
     </select>
+
+    <select id="getScoreCount" resultType="java.lang.Integer">
+        SELECT count(*) FROM prisoner.score WHERE 1=1
+        <if test="gameId!=null">
+            and game_id = #{gameId}
+        </if>
+    </select>
+
+
 
     <insert id="insertScore" parameterType="com.company.prisoner.game.model.Score">
         INSERT INTO prisoner.score (game_id, group_id, user_id, option_value, score, create_by, create_date, last_update_by, last_update_date, delete_flag)

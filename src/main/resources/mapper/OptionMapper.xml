@@ -23,6 +23,12 @@
         <if test="gameId!=null">
             and game_id = #{gameId}
         </if>
+        <if test="groupId!=null">
+            and group_id = #{groupId}
+        </if>
+        <if test="userId!=null">
+            and user_id = #{userId}
+        </if>
     </select>
 
     <insert id="insertOption" parameterType="com.company.prisoner.game.model.Option">

@@ -25,8 +25,7 @@ public class OptionController {
 
     @PostMapping("/submit")
     public Result submit(@RequestBody OptionParam param){
-        if(param.getGameId()==null||param.getGroupId()==null||param.getUserId()==null||
-                StringUtils.isEmpty(param.getSelectOptionValue())){
+        if(param.getUserId()==null|| StringUtils.isEmpty(param.getSelectOptionValue())){
             log.error("存在空数据,{}", JSON.toJSONString(param));
             throw new RuntimeException("存在空数据");
         }

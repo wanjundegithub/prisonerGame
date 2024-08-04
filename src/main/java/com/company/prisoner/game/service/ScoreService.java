@@ -42,11 +42,11 @@ public class ScoreService {
      * @param scoreParam
      * @return
      */
-    public List<ScoreVO> getAllScores(ScoreParam scoreParam){
+    public Result<List<ScoreVO>> getAllScores(ScoreParam scoreParam){
         List<ScoreVO> resultList;
         List<Score> allScores = scoreMapper.getScoreList(scoreParam);
         if (CollectionUtils.isEmpty(allScores)) {
-            return new ArrayList<>();
+            return Result.buildResult(ResultEnum.SUCCESSFUL.getCode(), "", new ArrayList<>());
         }
         Map<Integer, User> userMap = userService.reGetAllUsers();
         resultList = allScores.stream().map(score -> {
@@ -61,7 +61,7 @@ public class ScoreService {
             target.setUserName(user.getUserName());
             return target;
         }).collect(Collectors.toList());
-        return resultList;
+        return Result.buildResult(ResultEnum.SUCCESSFUL.getCode(), "", resultList);
     }
 
     /**
@@ -71,31 +71,26 @@ public class ScoreService {
     @Transactional(rollbackFor = Exception.class)
     public Result saveAllScores(ScoreParam scoreParam){
         Integer gameId = scoreParam.getGameId();
-
         //1.获取当前游戏下的所有选择option(只有stop状态下才能触发计算保存)
         OptionParam optionParam = new OptionParam();
         optionParam.setGameId(gameId);
         List<Option> optionList = optionService.getAllOptions(optionParam);
         if(CollectionUtils.isEmpty(optionList)){
             log.error("当前没有任何用户提交选择,无法计算分数, scoreParam:{}", JSON.toJSONString(scoreParam));
-            throw new RuntimeException("当前没有任何用户提交选择,无法计算分数");
-            //return Result.buildResult(ResultEnum.FAILED.getCode(), "当前没有任何用户提交选择,无法计算分数");
+            return Result.buildResult(ResultEnum.FAILED.getCode(), "当前没有任何用户提交选择,无法计算分数");
         }
-
         //2.获取当前游戏下的所有分组
         GroupParam groupParam = new GroupParam();
         groupParam.setGameId(gameId);
         List<Group> groupList = groupService.getAllGroup(groupParam);
         if(CollectionUtils.isEmpty(groupList)){
             log.error("无有效的分组信息, scoreParam:{}",  JSON.toJSONString(scoreParam));
-            throw new RuntimeException("无有效的分组信息");
-            //return Result.buildResult(ResultEnum.FAILED.getCode(),  "无有效的分组信息");
+            return Result.buildResult(ResultEnum.FAILED.getCode(),  "无有效的分组信息");
         }
         Map<Integer, User> userMap = userService.reGetAllUsers();
         if(CollectionUtils.isEmpty(userMap)){
             log.error("用户组基础数据为空，无法查询分组数据, gameId:{}", gameId);
-            throw new RuntimeException("用户组基础数据为空，无法查询分组数据");
-            //return Result.buildResult(ResultEnum.FAILED.getCode(), "用户组基础数据为空，无法查询分组数据");
+            return Result.buildResult(ResultEnum.FAILED.getCode(), "用户组基础数据为空，无法查询分组数据");
         }
         List<UserGroupVO> userGroupVOList = groupService.splitGroupList(userMap, groupList);
         //3.获取分组下的所有的分数
@@ -234,6 +229,51 @@ public class ScoreService {
         log.error("不存在的两两配对的选择,option1:{}, option2:{}", JSON.toJSONString(option1),
                 JSON.toJSONString(option2));
         throw new RuntimeException("不存在的两两配对的选择");
+    }
+
+    /**
+     * 获取分数表下所有的游戏id
+     * @return
+     */
+    public Result<List<Integer>> getAllGameIdList(){
+        ScoreParam scoreParam = new ScoreParam();
+        List<Integer> gameIdList = scoreMapper.getAllGameList(scoreParam);
+        return Result.buildResult(ResultEnum.SUCCESSFUL.getCode(), "", gameIdList);
+    }
+
+    /**
+     * 分页查询分数列表
+     * @param scoreParam
+     * @return
+     */
+    public Result<PageResult<Score>> getPageScoreList(ScoreParam scoreParam){
+        Integer total = scoreMapper.getScoreCount(scoreParam);
+        if(total==0){
+            log.error("当前游戏不存在分数信息, scoreParam:{}", JSON.toJSONString(scoreParam));
+            PageResult<Score> pageResult = PageResult.buildPageResult(new ArrayList<>(),
+                    0,scoreParam.getPageSize(), scoreParam.getPage());
+            return Result.buildResult(ResultEnum.SUCCESSFUL.getCode(), "", pageResult);
+        }
+        // 计算偏移量
+        Integer offset = (scoreParam.getPage() - 1) * scoreParam.getPageSize();
+        scoreParam.setOffset(offset);
+        List<Score> scoreList = scoreMapper.getScoreList(scoreParam);
+        Map<Integer, User> userMap = userService.reGetAllUsers();
+        List<ScoreVO> resultList = scoreList.stream().map(score -> {
+            ScoreVO target = new ScoreVO();
+            BeanUtils.copyProperties(score, target);
+            Integer userId = score.getUserId();
+            User user = userMap.get(userId);
+            if(user==null){
+                throw new RuntimeException("用户不存在");
+            }
+            target.setNickName(user.getNickName());
+            target.setUserName(user.getUserName());
+            return target;
+        }).collect(Collectors.toList());
+        PageResult<ScoreVO> pageResult = PageResult.buildPageResult(resultList,
+                total,scoreParam.getPageSize(), scoreParam.getPage());
+        return Result.buildResult(ResultEnum.SUCCESSFUL.getCode(), "", pageResult);
     }
 
 }

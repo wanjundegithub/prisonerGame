@@ -23,9 +23,23 @@
         FROM
             user
     </select>
-    <select id="selectUser" resultMap="UserResultMap">
-        SELECT * FROM `user`
-        WHERE user_name = #{userName} AND password = #{password}
+    <select id="selectUserList" resultMap="UserResultMap">
+        SELECT * FROM `user` WHERE 1=1
+        <if test="id!=null">
+            AND  id = #{id}
+        </if>
+        <if test="userName!=null and userName!=''">
+            AND  user_name = #{userName}
+        </if>
+        <if test="password!=null and password!=''">
+            AND password = #{password}
+        </if>
+        <if test="nickName!=null and nickName!=''">
+            AND user_name = #{nickName}
+        </if>
+        <if test="role!=null and role!=''">
+            AND `role` = #{role}
+        </if>
     </select>
 
     <select id="selectUserById" resultMap="UserResultMap">

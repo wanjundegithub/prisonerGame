@@ -1,12 +1,18 @@
 package com.company.prisoner.game.enums;
 
+/**
+ * @author user
+ */
+
 public enum GameActiveEnum {
 
     INITIAL(0),
 
     START(1),
 
-    STOP(2)
+    STOP(2),
+
+    INVALID(3)
     ;
 
 

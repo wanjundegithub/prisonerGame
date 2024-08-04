@@ -40,8 +40,8 @@ public class GameService {
      * @return
      */
     @Transactional(rollbackFor = Exception.class)
-    public synchronized Result createGame(){
-        //需要先检测是否有初始或初始状态下的游戏,如果存在,那么无法创建游戏(考虑增加废弃游戏的选项,清除所有游戏数据)
+    public synchronized Result<Game> createGame(){
+        //需要先检测是否有初始或初始状态下的游戏,如果存在,那么无法创建游戏
         GameParam param = new GameParam();
         List<Game> gameList = gameMapper.getGameList(param);
         gameList = gameList.stream().filter(t-> GameActiveEnum.INITIAL.getStatus()==t.getAliveFlag()
@@ -60,7 +60,15 @@ public class GameService {
             log.error("创建游戏失败,请稍后重试, game:{}", JSON.toJSONString(game));
             return Result.buildResult(ResultEnum.FAILED.getCode(), "创建游戏失败,请稍后重试");
         }
-        return groupService.startGroup(game.getGameId());
+        Result groupResult = groupService.startGroup(game.getGameId());
+        if(ResultEnum.FAILED.getCode().equals(groupResult.getCode())){
+            //当前游戏更新成无效状态
+            game.setAliveFlag(GameActiveEnum.INVALID.getStatus());
+            gameMapper.updateGame(game);
+            log.error("分组创建失败无法创建游戏,请稍后重试, game:{}", JSON.toJSONString(game));
+            return Result.buildResult(ResultEnum.FAILED.getCode(), "分组创建失败无法创建游戏,请稍后重试");
+        }
+        return Result.buildResult(ResultEnum.SUCCESSFUL.getCode(), "", game);
     }
 
     /**
@@ -69,13 +77,13 @@ public class GameService {
      */
     public synchronized Result startGame(GameParam gameParam){
         //先要查询对应游戏是否存在 且处于创建状态才能启动
-        Result<Game> gameResult = checkGame(gameParam);
+        Result<Game> gameResult = getGame(gameParam);
         if(ResultEnum.FAILED.getCode().equals(gameResult.getCode())){
             return gameResult;
         }
         Game game =gameResult.getData();
         if(GameActiveEnum.INITIAL.getStatus()!=game.getAliveFlag()){
-            Result.buildResult(ResultEnum.FAILED.getCode(), "当前游戏不处于创建状态,无法启动游戏");
+            return Result.buildResult(ResultEnum.FAILED.getCode(), "当前游戏不处于创建状态,无法启动游戏");
         }
         game.setAliveFlag(GameActiveEnum.START.getStatus());
         Integer result = gameMapper.updateGame(game);
@@ -92,7 +100,7 @@ public class GameService {
     @Transactional(rollbackFor = Exception.class)
     public synchronized Result stopGame(GameParam gameParam){
         //检测是否处于启动状态或创建状态
-        Result<Game> gameResult = checkGame(gameParam);
+        Result<Game> gameResult = getGame(gameParam);
         if(ResultEnum.FAILED.getCode().equals(gameResult.getCode())){
             return gameResult;
         }
@@ -101,15 +109,20 @@ public class GameService {
             log.error("游戏处于停止状态无法再次停止, game:{}", JSON.toJSONString(game));
             return Result.buildResult(ResultEnum.FAILED.getCode(), "游戏处于停止状态无法再次停止");
         }
+        ScoreParam scoreParam = new ScoreParam();
+        scoreParam.setGameId(game.getGameId());
+        Result scoreResult =  scoreService.saveAllScores(scoreParam);
+        if(ResultEnum.FAILED.getCode().equals(scoreResult.getCode())){
+            log.error("{}, game:{}", scoreResult.getMessage(), JSON.toJSONString(game));
+            return Result.buildResult(ResultEnum.FAILED.getCode(), scoreResult.getMessage());
+        }
         game.setAliveFlag(GameActiveEnum.STOP.getStatus());
         Integer result = gameMapper.updateGame(game);
         if(result<=0){
             log.error("游戏停止失败, game:{}", JSON.toJSONString(game));
             return Result.buildResult(ResultEnum.FAILED.getCode(), "游戏停止失败");
         }
-        ScoreParam scoreParam = new ScoreParam();
-        scoreParam.setGameId(game.getGameId());
-        return scoreService.saveAllScores(scoreParam);
+        return Result.buildResult(ResultEnum.SUCCESSFUL.getCode(), "");
     }
 
     /**
@@ -148,26 +161,31 @@ public class GameService {
         return Result.buildResult(ResultEnum.SUCCESSFUL.getCode(),"", gameList.get(0));
     }
 
-    public boolean checkStartGame(Integer gameId){
-        GameParam param = new GameParam();
-        param.setGameId(gameId);
-        param.setAliveFlag(GameActiveEnum.START.getStatus());
-        List<Game> gameList = gameMapper.getGameList(param);
-        return !CollectionUtils.isEmpty(gameList) && gameList.size() <= 1;
-    }
 
     /**
-     * 检查游戏
+     * 获取唯一游戏，要求有gameId
      * @param param
      * @return
      */
-    private Result<Game> checkGame(GameParam param){
+    public Result<Game> getGame(GameParam param){
         List<Game> gameList = gameMapper.getGameList(param);
         if(CollectionUtils.isEmpty(gameList)||gameList.size()>1){
-            Result.buildResult(ResultEnum.FAILED.getCode(), "不存在当前游戏或存在多个重复游戏，无法启动游戏");
+            log.error("不存在当前游戏或存在多个重复游戏,无法启动游戏,param:{}", JSON.toJSONString(param));
+            return Result.buildResult(ResultEnum.FAILED.getCode(),
+                    "不存在当前游戏或存在多个重复游戏，无法启动游戏");
         }
         Game game = gameList.get(0);
         return Result.buildResult(ResultEnum.SUCCESSFUL.getCode(), "", game);
+    }
+
+    /**
+     * 获取游戏列表
+     * @param param
+     * @return
+     */
+    public Result<Game> getGameList(GameParam param){
+        List<Game> gameList = gameMapper.getGameList(param);
+        return Result.buildResult(ResultEnum.SUCCESSFUL.getCode(), "", gameList);
     }
 
 }

@@ -1,6 +1,7 @@
 package com.company.prisoner.game.mapper;
 
 import com.company.prisoner.game.model.User;
+import com.company.prisoner.game.param.UserParam;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
@@ -20,11 +21,10 @@ public interface UserMapper {
 
     /**
      * 根据用户名和密码查询用户
-     * @param userName
-     * @param password
+     * @param userParam
      * @return
      */
-    User selectUser(@Param("userName") String userName, @Param("password") String password);
+    List<User> selectUserList(UserParam userParam);
 
     /**
      * 根据id查询用户
