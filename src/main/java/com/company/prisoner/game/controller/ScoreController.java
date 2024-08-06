@@ -41,6 +41,15 @@ public class ScoreController {
         return scoreService.getAllGameIdList();
     }
 
+    @PostMapping("/getAllClassNameList")
+    public Result<List<String>> getAllClassNameList(@RequestBody ScoreParam scoreParam){
+        if(scoreParam.getGameId()==null){
+            log.error("游戏不存在, scoreParam:{}", JSON.toJSONString(scoreParam));
+            throw new RuntimeException("游戏不存在");
+        }
+        return scoreService.getAllClassNameList(scoreParam);
+    }
+
     @PostMapping("/getPageScoreList")
     public Result<PageResult<Score>> getPageScoreList(@RequestBody ScoreParam scoreParam){
         if(scoreParam.getGameId()==null || scoreParam.getPageSize()==null|| scoreParam.getPage()==null){

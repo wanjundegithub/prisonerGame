@@ -6,7 +6,7 @@ spring:
   datasource:
     #    数据库连接
     name: prisoner
-    url: jdbc:mysql://110.41.0.161:3307/prisoner
+    url: jdbc:mysql://110.41.0.161:3307/prisoner?allowMultiQueries=true
     username: root
     password: root
     driver-class-name: com.mysql.cj.jdbc.Driver

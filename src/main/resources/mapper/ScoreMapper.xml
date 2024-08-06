@@ -19,30 +19,113 @@
         <result property="deleteFlag" column="delete_flag"/>
     </resultMap>
 
-    <select id="getAllGameList" resultType="java.lang.Integer">
-        select distinct game_id as gameId from prisoner.score WHERE 1=1
+    <resultMap id="ScoreResultVOMap" type="com.company.prisoner.game.vo.ScoreVO">
+        <id property="id" column="id"/>
+        <result property="gameId" column="game_id"/>
+        <result property="groupId" column="group_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="optionValue" column="option_value"/>
+        <result property="score" column="score"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createDate" column="create_date"/>
+        <result property="lastUpdateBy" column="last_update_by"/>
+        <result property="lastUpdateDate" column="last_update_date"/>
+        <result property="deleteFlag" column="delete_flag"/>
+        <result property="nickName" column="nick_name" />
+        <result property="userName" column="user_name" />
+        <result property="className" column="class_name"/>
+    </resultMap>
+
+    <sql id="userCondition">
+        <if test="id!=null">
+            AND  id = #{id}
+        </if>
+        <if test="userName!=null and userName!=''">
+            AND  user_name = #{userName}
+        </if>
+        <if test="password!=null and password!=''">
+            AND password = #{password}
+        </if>
+        <if test="nickName!=null and nickName!=''">
+            AND nick_name = #{nickName}
+        </if>
+        <if test="role!=null and role!=''">
+            AND `role` = #{role}
+        </if>
+        <if test="className!=null and className!=''">
+            AND `class_name` = #{className}
+        </if>
+    </sql>
+
+    <sql id="scoreCondition">
+        <if test="id!=null">
+            and id = #{id}
+        </if>
         <if test="gameId!=null">
             and game_id = #{gameId}
         </if>
+        <if test="groupId!=null">
+            and groupId = #{group_id}
+        </if>
+        <if test="userId!=null">
+            and userId = #{user_id}
+        </if>
+        <if test="optionValue!=null">
+            and optionValue = #{option_value}
+        </if>
+    </sql>
+
+    <select id="getAllGameIdList" resultType="java.lang.Integer">
+        select distinct game_id as gameId from prisoner.score WHERE 1=1
+        <include refid="scoreCondition"/>
         order by game_id desc
     </select>
 
-    <select id="getScoreList" resultMap="ScoreResultMap">
-        SELECT * FROM prisoner.score WHERE 1=1
-        <if test="gameId!=null">
-            and game_id = #{gameId}
-        </if>
-        order by score desc
+    <select id="getAllClassNameList" resultType="java.lang.String">
+        select distinct t1.class_name as className FROM
+        (
+        select user_id from score where 1=1
+        <include refid="scoreCondition"/>
+        ) t0
+        inner join
+        (
+        select id, class_name from user where 1=1
+        <include refid="userCondition"/>
+        ) t1
+        on t0.user_id = t1.id
+        order by t1.class_name
+    </select>
+
+    <select id="getScoreList" resultMap="ScoreResultVOMap">
+        SELECT t0.*, t1.nick_name, t1.user_name, t1.class_name FROM
+        (
+        select * from score where 1=1
+        <include refid="scoreCondition"/>
+        ) t0
+        inner join
+        (
+        select id, nick_name, user_name, class_name from user where 1=1
+        <include refid="userCondition"/>
+        ) t1
+        on t0.user_id = t1.id
+        order by t0.score desc
         <if test="page!=null and pageSize!=null">
             limit #{offset}, #{pageSize}
         </if>
     </select>
 
     <select id="getScoreCount" resultType="java.lang.Integer">
-        SELECT count(*) FROM prisoner.score WHERE 1=1
-        <if test="gameId!=null">
-            and game_id = #{gameId}
-        </if>
+        SELECT count(*) FROM
+        (
+            select * from score where 1=1
+            <include refid="scoreCondition"/>
+        ) t0
+        inner join
+        (
+            select * from user where 1=1
+            <include refid="userCondition"/>
+        ) t1
+        on t0.user_id = t1.id
     </select>
 
 

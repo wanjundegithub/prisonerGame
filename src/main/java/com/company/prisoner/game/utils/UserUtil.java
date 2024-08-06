@@ -4,6 +4,7 @@ import com.company.prisoner.game.enums.ResultEnum;
 import com.company.prisoner.game.model.Result;
 import com.company.prisoner.game.model.User;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -70,22 +71,22 @@ public class UserUtil {
 
     public static Result login(User user){
         if(userOnLineMap.containsKey(user.getId())){
-            log.error("已经处于登陆状态无法再次登陆");
-            return Result.buildResult(ResultEnum.FAILED.getCode(), "已经处于登陆状态无法再次登陆");
+            log.info("用户{}已处于登陆状态,将再次登陆", user.getUserName());
+        }else{
+            userOnLineMap.put(user.getId(), user);
+            onlineCount.incrementAndGet();
         }
-        userOnLineMap.put(user.getId(), user);
-        onlineCount.incrementAndGet();
         log.info("当前登录人员学号:{}, 当前在线人数:{}", user.getUserName(),onlineCount.get());
         return Result.buildResult(ResultEnum.SUCCESSFUL.getCode());
     }
 
     public static Result logout(User user){
         if(!userOnLineMap.containsKey(user.getId())){
-            log.error("已经处于登出状态无法再次登出");
-            return Result.buildResult(ResultEnum.FAILED.getCode(), "已经处于登出状态无法再次登出");
+            log.info("服务器用户:{}中已处于登出状态",user.getUserName());
+        }else{
+            userOnLineMap.remove(user.getId());
+            onlineCount.decrementAndGet();
         }
-        userOnLineMap.remove(user.getId());
-        onlineCount.decrementAndGet();
         log.info("当前退出登录用户学号:{}, 当前在线人数:{}", user.getUserName(),onlineCount.get());
         return Result.buildResult(ResultEnum.SUCCESSFUL.getCode());
     }
@@ -103,37 +104,29 @@ public class UserUtil {
         log.info("当前用户user:{}做出了选择, 当前游戏提交人数为:{}",user.getUserName(), submitCountMap.get(gameId));
     }
 
-    public static void update(Integer userId, User user){
+    public static boolean update(Integer userId, User user){
         log.info("当前用户user:{}更新个人信息和在线用户缓存",user.getId());
         if(!userMap.containsKey(userId)){
             log.info("当前用户user:{}不存在,无法更新基础用户缓存",user.getId());
-            return;
+            return false;
         }
         //更新基础用户缓存和在线用户缓存
-        userMap.put(userId, user);
-        if(!userOnLineMap.containsKey(userId)){
-            log.info("当前用户user:{}不存在在线用户缓存中,无法更新缓存",user.getId());
-            return;
-        }
-        userOnLineMap.put(userId, user);
+        updateUserInfo(user);
+        return true;
     }
 
     /**
-     * 将用户从缓存中删除
+     * 将用户从缓存中删除(在线状态无法进行删除)
      * @param userId
      */
-    public static void delete(Integer userId){
+    public static boolean delete(Integer userId){
         log.info("当前用户user:{}被删除个人信息和在线用户缓存",userId);
         if(!userMap.containsKey(userId)){
             log.info("当前用户user:{}不存在,无法删除用户",userId);
-            return;
+            return false;
         }
         userMap.remove(userId);
-        if(!userOnLineMap.containsKey(userId)){
-            log.info("当前用户user:{}不存在在线用户缓存中,无法删除用户",userId);
-            return;
-        }
-        userOnLineMap.remove(userId);
+        return true;
     }
 
     public static boolean save(Integer userId, User user){
@@ -157,6 +150,54 @@ public class UserUtil {
             userMap.put(userId, user);
         }
         return true;
+    }
+
+    public static boolean deleteUserList(List<User> userList){
+        for(User user: userList){
+            if(!userMap.containsKey(user.getId())){
+                return false;
+            }
+            userMap.remove(user.getId());
+        }
+        return true;
+    }
+
+    public static boolean updateUserList(List<User> userList){
+        for(User user: userList){
+            if(!userMap.containsKey(user.getId())){
+                return false;
+            }
+            //更新时需要判断所有字段为空
+            updateUserInfo(user);
+        }
+        return true;
+    }
+
+    public static void updateUserInfo(User newUser){
+        if(!userMap.containsKey(newUser.getId())){
+            return;
+        }
+        Integer userId = newUser.getId();
+        User user = userMap.get(userId);
+        if(!StringUtils.isEmpty(newUser.getUserName())){
+            user.setUserName(newUser.getUserName());
+        }
+        if(!StringUtils.isEmpty(newUser.getPassword())){
+            user.setPassword(newUser.getPassword());
+        }
+        if(!StringUtils.isEmpty(newUser.getClassName())){
+            user.setClassName(newUser.getClassName());
+        }
+        if(!StringUtils.isEmpty(newUser.getRole())){
+            user.setRole(newUser.getRole());
+        }
+        if(!StringUtils.isEmpty(newUser.getNickName())){
+            user.setNickName(newUser.getNickName());
+        }
+        userMap.put(userId, user);
+        if(userOnLineMap.containsKey(userId)){
+            userOnLineMap.put(userId, user);
+        }
     }
 
 }

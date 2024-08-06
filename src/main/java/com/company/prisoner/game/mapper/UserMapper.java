@@ -20,7 +20,14 @@ public interface UserMapper {
     List<User> getAllUsers();
 
     /**
-     * 根据用户名和密码查询用户
+     * 获取总数
+     * @param userParam
+     * @return
+     */
+    int selectTotal(UserParam userParam);
+
+    /**
+     * 根据条件查询用户列表
      * @param userParam
      * @return
      */
@@ -41,6 +48,14 @@ public interface UserMapper {
     int updateUser(User user);
 
     /**
+     * 批量更新用户
+     * @param userList
+     * @return
+     */
+    int batchUpdateUserList(@Param("userList") List<User> userList);
+
+
+    /**
      * 保存用户
      * @param user
      * @return
@@ -53,6 +68,13 @@ public interface UserMapper {
      * @return
      */
     int deleteUserById(User user);
+
+    /**
+     * 批量删除用户
+     * @param idList
+     * @return
+     */
+    int deleteUserList(@Param("idList") List<Integer> idList);
 
     /**
      * 保存用户列表

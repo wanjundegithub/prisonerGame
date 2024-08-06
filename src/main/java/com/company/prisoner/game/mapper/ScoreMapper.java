@@ -12,7 +12,9 @@ import java.util.List;
 @Repository
 public interface ScoreMapper {
 
-    List<Integer> getAllGameList(ScoreParam scoreParam);
+    List<Integer> getAllGameIdList(ScoreParam scoreParam);
+
+    List<String> getAllClassNameList(ScoreParam scoreParam);
 
     Integer getScoreCount(ScoreParam scoreParam);
 

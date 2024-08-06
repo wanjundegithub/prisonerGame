@@ -15,6 +15,7 @@ public class User {
     private String userName;
     private String password;
     private String role;
+    private String className;
     private String createBy;
     private Date createDate;
     private String lastUpdateBy;
@@ -32,6 +33,8 @@ public class User {
         targetUser.setNickName(sourceUser.getNickName());
         targetUser.setUserName(sourceUser.getUserName());
         targetUser.setPassword(sourceUser.getPassword());
+        targetUser.setRole(sourceUser.getRole());
+        targetUser.setClassName(sourceUser.getClassName());
         targetUser.setCreateBy(sourceUser.getCreateBy());
         targetUser.setCreateDate(sourceUser.getCreateDate());
         targetUser.setLastUpdateBy(sourceUser.getLastUpdateBy());

@@ -13,4 +13,6 @@ public class ScoreVO extends Score {
 
     private String userName;
 
+    private String className;
+
 }

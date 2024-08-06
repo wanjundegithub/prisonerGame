@@ -49,18 +49,7 @@ public class ScoreService {
             return Result.buildResult(ResultEnum.SUCCESSFUL.getCode(), "", new ArrayList<>());
         }
         Map<Integer, User> userMap = userService.reGetAllUsers();
-        resultList = allScores.stream().map(score -> {
-            ScoreVO target = new ScoreVO();
-            BeanUtils.copyProperties(score, target);
-            Integer userId = score.getUserId();
-            User user = userMap.get(userId);
-            if(user==null){
-                throw new RuntimeException("用户不存在");
-            }
-            target.setNickName(user.getNickName());
-            target.setUserName(user.getUserName());
-            return target;
-        }).collect(Collectors.toList());
+        resultList = buildScoreVOList(allScores, userMap);
         return Result.buildResult(ResultEnum.SUCCESSFUL.getCode(), "", resultList);
     }
 
@@ -237,8 +226,17 @@ public class ScoreService {
      */
     public Result<List<Integer>> getAllGameIdList(){
         ScoreParam scoreParam = new ScoreParam();
-        List<Integer> gameIdList = scoreMapper.getAllGameList(scoreParam);
+        List<Integer> gameIdList = scoreMapper.getAllGameIdList(scoreParam);
         return Result.buildResult(ResultEnum.SUCCESSFUL.getCode(), "", gameIdList);
+    }
+
+    /**
+     * 获取分数表下所有班级名称
+     * @return
+     */
+    public Result<List<String>> getAllClassNameList(ScoreParam scoreParam){
+        List<String> classNameList = scoreMapper.getAllClassNameList(scoreParam);
+        return Result.buildResult(ResultEnum.SUCCESSFUL.getCode(), "", classNameList);
     }
 
     /**
@@ -259,7 +257,14 @@ public class ScoreService {
         scoreParam.setOffset(offset);
         List<Score> scoreList = scoreMapper.getScoreList(scoreParam);
         Map<Integer, User> userMap = userService.reGetAllUsers();
-        List<ScoreVO> resultList = scoreList.stream().map(score -> {
+        List<ScoreVO> resultList = buildScoreVOList(scoreList, userMap);
+        PageResult<ScoreVO> pageResult = PageResult.buildPageResult(resultList,
+                total,scoreParam.getPageSize(), scoreParam.getPage());
+        return Result.buildResult(ResultEnum.SUCCESSFUL.getCode(), "", pageResult);
+    }
+
+    private List<ScoreVO> buildScoreVOList(List<Score> scoreList, Map<Integer, User> userMap){
+        return scoreList.stream().map(score -> {
             ScoreVO target = new ScoreVO();
             BeanUtils.copyProperties(score, target);
             Integer userId = score.getUserId();
@@ -269,11 +274,9 @@ public class ScoreService {
             }
             target.setNickName(user.getNickName());
             target.setUserName(user.getUserName());
+            target.setClassName(user.getClassName());
             return target;
         }).collect(Collectors.toList());
-        PageResult<ScoreVO> pageResult = PageResult.buildPageResult(resultList,
-                total,scoreParam.getPageSize(), scoreParam.getPage());
-        return Result.buildResult(ResultEnum.SUCCESSFUL.getCode(), "", pageResult);
     }
 
 }

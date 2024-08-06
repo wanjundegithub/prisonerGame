@@ -1,5 +1,6 @@
 package com.company.prisoner.game.param;
 
+import com.company.prisoner.game.model.User;
 import lombok.Data;
 
 import java.util.List;
@@ -20,5 +21,15 @@ public class UserParam {
 
     private String role;
 
+    private String className;
+
     private List<String> userNameList;
+
+    private Integer page;
+
+    private Integer pageSize;
+
+    private Integer offset;
+
+    private List<User> userList;
 }
