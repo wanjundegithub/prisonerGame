@@ -40,16 +40,17 @@ public class GroupService {
      * @return
      */
     @Transactional(rollbackFor = Exception.class)
-    public synchronized Result startGroup(Integer gameId){
+    public synchronized Result<User> startGroup(Integer gameId){
         Map<Integer, User> userOnLineMap = UserUtil.getUserOnLineMap();
         if(userOnLineMap.size()<MIN_USER_COUNT){
-            log.error("在线人数少于2人无法进行分组,当前在线人数"+userOnLineMap.size());
-            return Result.buildResult(ResultEnum.FAILED.getCode(),
-                    "在线人数少于2人无法进行分组,当前在线人数"+userOnLineMap.size());
+            throw new RuntimeException("在线人数少于2人无法进行分组,当前在线人数"+userOnLineMap.size());
+//            log.error("在线人数少于2人无法进行分组,当前在线人数"+userOnLineMap.size());
+//            return Result.buildResult(ResultEnum.FAILED.getCode(),
+//                    "在线人数少于2人无法进行分组,当前在线人数"+userOnLineMap.size());
         }
         List<User> userList = new ArrayList<>(userOnLineMap.values());
         User unGroupUser = new User();
-        //分组需要剔除管理员参与
+        //分组剔除管理员参与
         userList = userList.stream().filter(t->!GameConstants.ADMIN.equals(t.getRole()))
                 .collect(Collectors.toList());
         List<Group> resultGroups = generateGroups(userList, unGroupUser);

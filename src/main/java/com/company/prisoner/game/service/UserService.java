@@ -13,10 +13,7 @@ import com.company.prisoner.game.model.User;
 import com.company.prisoner.game.param.GameParam;
 import com.company.prisoner.game.param.UserParam;
 import com.company.prisoner.game.utils.UserUtil;
-import com.company.prisoner.game.vo.ScoreVO;
 import com.company.prisoner.game.vo.UserDistributionVO;
-import com.mysql.cj.x.protobuf.MysqlxDatatypes;
-import jdk.jfr.StackTrace;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +41,6 @@ public class UserService {
     private UserMapper userMapper;
 
     public synchronized Result login(UserParam userParam){
-        //在数据库中查询出对应的用户 改为从缓存中查询数据
         List<User> userList = selectUserList(userParam);
         if(CollectionUtils.isEmpty(userList)){
             log.error("用户名或者密码不正确, userParam:{}", JSON.toJSONString(userParam));
@@ -59,7 +55,6 @@ public class UserService {
     }
 
     public synchronized Result logout(UserParam userParam){
-        //改为直接从缓存中查数据
         User currentUser = userMapper.selectUserById(userParam.getId());
         if(currentUser==null){
             log.error("用户不存在");

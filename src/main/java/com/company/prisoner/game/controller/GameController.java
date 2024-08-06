@@ -4,6 +4,7 @@ import com.company.prisoner.game.model.Game;
 import com.company.prisoner.game.model.Result;
 import com.company.prisoner.game.param.GameParam;
 import com.company.prisoner.game.service.GameService;
+import com.company.prisoner.game.vo.GameVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +18,7 @@ public class GameController {
     private GameService gameService;
 
     @PostMapping("/createGame")
-    public Result<Game> createGame(){
+    public Result<GameVO> createGame(){
         return gameService.createGame();
     }
 

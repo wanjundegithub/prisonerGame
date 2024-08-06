@@ -11,7 +11,9 @@ import com.company.prisoner.game.model.User;
 import com.company.prisoner.game.param.GameParam;
 import com.company.prisoner.game.param.ScoreParam;
 import com.company.prisoner.game.param.UserParam;
+import com.company.prisoner.game.vo.GameVO;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,15 +40,12 @@ public class GameService {
     @Autowired
     private GroupService groupService;
 
-    @Autowired
-    private UserService userService;
-
     /**
      * 创建游戏后马上进行分组
      * @return
      */
     @Transactional(rollbackFor = Exception.class)
-    public synchronized Result<Game> createGame(){
+    public synchronized Result<GameVO> createGame(){
         //需要先检测是否有初始或初始状态下的游戏,如果存在,那么无法创建游戏
         GameParam param = new GameParam();
         List<Game> gameList = gameMapper.getGameList(param);
@@ -66,15 +65,14 @@ public class GameService {
             log.error("创建游戏失败,请稍后重试, game:{}", JSON.toJSONString(game));
             return Result.buildResult(ResultEnum.FAILED.getCode(), "创建游戏失败,请稍后重试");
         }
-        Result groupResult = groupService.startGroup(game.getGameId());
-        if(ResultEnum.FAILED.getCode().equals(groupResult.getCode())){
-            //当前游戏更新成无效状态
-            game.setAliveFlag(GameActiveEnum.INVALID.getStatus());
-            gameMapper.updateGame(game);
-            log.error("分组创建失败无法创建游戏,请稍后重试, game:{}", JSON.toJSONString(game));
-            return Result.buildResult(ResultEnum.FAILED.getCode(), "分组创建失败无法创建游戏,请稍后重试");
+        Result<User> groupResult = groupService.startGroup(game.getGameId());
+        GameVO gameVO = new GameVO();
+        BeanUtils.copyProperties(game, gameVO);
+        //存在未分组的玩家
+        if(groupResult.getData()!=null){
+           gameVO.setUnGroupUser(groupResult.getData());
         }
-        return Result.buildResult(ResultEnum.SUCCESSFUL.getCode(), "", game);
+        return Result.buildResult(ResultEnum.SUCCESSFUL.getCode(), "", gameVO);
     }
 
     /**

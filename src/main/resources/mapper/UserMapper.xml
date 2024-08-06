@@ -51,16 +51,19 @@
             *
         FROM
             user
+        where 1=1 AND delete_flag = 0
     </select>
 
     <select id="selectTotal" resultType="integer">
         select count(*) from user where 1=1
         <include refid="userCondition"/>
+        AND delete_flag = 0
     </select>
 
     <select id="selectUserList" resultMap="UserResultMap">
         SELECT * FROM `user` WHERE 1=1
         <include refid="userCondition"/>
+        AND delete_flag = 0
         <if test="page!=null and pageSize!=null">
             limit #{offset}, #{pageSize}
         </if>
@@ -68,7 +71,9 @@
 
     <select id="selectUserById" resultMap="UserResultMap">
         SELECT * FROM `user`
-        WHERE id = #{id}
+        WHERE 1=1
+          AND id = #{id}
+          AND delete_flag = 0
     </select>
 
     <update id="updateUser">
@@ -90,7 +95,7 @@
             last_update_by = #{lastUpdateBy},
         </if>
             last_update_date = NOW()
-        WHERE id = #{id}
+        WHERE id = #{id} AND delete_flag = 0
     </update>
 
     <update id="batchUpdateUserList" parameterType="java.util.List">
@@ -116,7 +121,7 @@
                 `last_update_by` = #{user.lastUpdateBy},
             </if>
             `last_update_date` = NOW()
-            WHERE `id` = #{user.id}
+            WHERE `id` = #{user.id} AND delete_flag = 0
         </foreach>
     </update>
 
@@ -127,13 +132,25 @@
         VALUES (#{nickName}, #{userName}, #{password}, #{role}, #{className}, #{createBy}, now(), #{lastUpdateBy}, now(), 0)
     </insert>
 
-    <!-- 删除 -->
-    <delete id="deleteUserById" parameterType="Integer">
-        DELETE FROM `user` WHERE id = #{id}
-    </delete>
+<!--    &lt;!&ndash; 删除 &ndash;&gt;-->
+<!--    <delete id="deleteUserById" parameterType="Integer">-->
+<!--        DELETE FROM `user` WHERE id = #{id}-->
+<!--    </delete>-->
+
+    <update id="deleteUserById" parameterType="Integer">
+        update `user` set delete_flag = 1 WHERE id = #{id}
+    </update>
+
+<!--    <delete id="deleteUserList" parameterType="java.util.List">-->
+<!--        DELETE FROM `user`-->
+<!--        WHERE id IN-->
+<!--        <foreach item="item" index="index" collection="idList" open="(" separator="," close=")">-->
+<!--            #{item}-->
+<!--        </foreach>-->
+<!--    </delete>-->
 
     <delete id="deleteUserList" parameterType="java.util.List">
-        DELETE FROM `user`
+        update `user` set delete_flag = 1
         WHERE id IN
         <foreach item="item" index="index" collection="idList" open="(" separator="," close=")">
             #{item}

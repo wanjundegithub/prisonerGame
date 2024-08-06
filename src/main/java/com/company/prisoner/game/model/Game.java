@@ -4,6 +4,9 @@ package com.company.prisoner.game.model;
 import lombok.Data;
 import java.util.Date;
 
+/**
+ * @author user
+ */
 @Data
 public class Game {
     private Integer gameId;
