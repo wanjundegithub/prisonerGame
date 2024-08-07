@@ -43,14 +43,8 @@ public class ScoreService {
      * @return
      */
     public Result<List<ScoreVO>> getAllScores(ScoreParam scoreParam){
-        List<ScoreVO> resultList;
-        List<Score> allScores = scoreMapper.getScoreList(scoreParam);
-        if (CollectionUtils.isEmpty(allScores)) {
-            return Result.buildResult(ResultEnum.SUCCESSFUL.getCode(), "", new ArrayList<>());
-        }
-        Map<Integer, User> userMap = userService.reGetAllUsers();
-        resultList = buildScoreVOList(allScores, userMap);
-        return Result.buildResult(ResultEnum.SUCCESSFUL.getCode(), "", resultList);
+        List<ScoreVO> allScores = scoreMapper.getScoreList(scoreParam);
+        return Result.buildResult(ResultEnum.SUCCESSFUL.getCode(), "", allScores);
     }
 
     /**
@@ -255,10 +249,8 @@ public class ScoreService {
         // 计算偏移量
         Integer offset = (scoreParam.getPage() - 1) * scoreParam.getPageSize();
         scoreParam.setOffset(offset);
-        List<Score> scoreList = scoreMapper.getScoreList(scoreParam);
-        Map<Integer, User> userMap = userService.reGetAllUsers();
-        List<ScoreVO> resultList = buildScoreVOList(scoreList, userMap);
-        PageResult<ScoreVO> pageResult = PageResult.buildPageResult(resultList,
+        List<ScoreVO> scoreList = scoreMapper.getScoreList(scoreParam);
+        PageResult<ScoreVO> pageResult = PageResult.buildPageResult(scoreList,
                 total,scoreParam.getPageSize(), scoreParam.getPage());
         return Result.buildResult(ResultEnum.SUCCESSFUL.getCode(), "", pageResult);
     }

@@ -2,6 +2,7 @@ package com.company.prisoner.game.mapper;
 
 import com.company.prisoner.game.model.Score;
 import com.company.prisoner.game.param.ScoreParam;
+import com.company.prisoner.game.vo.ScoreVO;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -18,7 +19,7 @@ public interface ScoreMapper {
 
     Integer getScoreCount(ScoreParam scoreParam);
 
-    List<Score> getScoreList(ScoreParam scoreParam);
+    List<ScoreVO> getScoreList(ScoreParam scoreParam);
 
     void insertScore(Score score);
 
